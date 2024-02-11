@@ -69,5 +69,36 @@ datasetImportUI <- function(id = "dataset_import") {
         dataTableOutput(ns("dataset_summary"))
       )
     ),
+    fluidRow(
+      box(
+        title = "Dataset Histogram Plot",
+        status = "primary",
+        solidHeader = TRUE,
+        width = 12,
+        plotOutput(ns("dataset_histogram"))
+      )
+    ),
+    fluidRow(
+      column(
+        6,
+        box(
+          title = "Dataset Correlation Plot",
+          status = "primary",
+          solidHeader = TRUE,
+          width = 12,
+          plotOutput(ns("dataset_correlation"), height = "750px")
+        )
+      ),
+      column(
+        6,
+        box(
+          title = "Dataset Correlation Heatmap",
+          status = "primary",
+          solidHeader = TRUE,
+          width = 12,
+          plotOutput(ns("dataset_heatmap"), height = "750px")
+        )
+      )
+    ),
   )
 }

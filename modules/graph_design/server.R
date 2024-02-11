@@ -96,7 +96,7 @@ graphDesignServer <- function(id = "graph_design", dataset) {
         req(len > 0)
         # Add node style
         V(g)$shape <- rep(input$graph_node_shape, len)
-        V(g)$color <- rep(input$graph_node_color, len)
+        # FIXME: V(g)$color <- rep(input$graph_node_color, len)
         V(g)$shadow <- rep(input$graph_node_shadow, len)
         # Add edge style
         len <- ecount(g)

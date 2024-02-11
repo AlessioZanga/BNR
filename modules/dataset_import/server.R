@@ -5,6 +5,7 @@ library(shinyjs)
 library(shinydashboard)
 library(shinyFeedback)
 library(dplyr)
+library(gplots)
 library(readxl)
 library(readODS)
 
@@ -29,20 +30,20 @@ datasetImportServer <- function(id = "dataset_import") {
               },
               ".xls" = {
                 data.frame(
-                    read_excel(
-                      file,
-                      sheet = 1,
-                      col_names = input$header
-                    )
+                  read_excel(
+                    file,
+                    sheet = 1,
+                    col_names = input$header
+                  )
                 )
               },
               ".xlsx" = {
                 data.frame(
-                    read_excel(
-                      file,
-                      sheet = 1,
-                      col_names = input$header
-                    )
+                  read_excel(
+                    file,
+                    sheet = 1,
+                    col_names = input$header
+                  )
                 )
               },
               ".ods" = {
@@ -75,10 +76,10 @@ datasetImportServer <- function(id = "dataset_import") {
       })
 
       # Get dataset head as preview
-      output$preview <- renderDataTable(dataset())
+      output$dataset_preview <- renderDataTable(dataset())
 
       # Get dataset summary
-      output$summary <- renderDataTable({
+      output$dataset_summary <- renderDataTable({
         req(dataset())
         # Compute summary statistics and convert to data.frame
         do.call(
@@ -87,6 +88,46 @@ datasetImportServer <- function(id = "dataset_import") {
             is.numeric
           )), summary, digits = 4)
         )
+      })
+
+      # Plot dataset histogram
+      output$dataset_histogram <- renderPlot({
+        req(dataset())
+        # Compute variables histogram
+        par(mfrow = c(round(ncol(dataset()) / 8), 8))
+        for (c in names(dataset())) {
+          x <- dataset()[, c]
+          hist(x, prob = TRUE, xlab = c, ylab = "", main = "", col = "ivory")
+          lines(density(x), lwd = 2, col = "tomato")
+          curve(dnorm(x, mean = mean(x), sd = sd(x)), from = min(x), to = max(x), add = TRUE, lwd = 2, col = "steelblue")
+        }
+      })
+
+      # Plot dataset correlation
+      output$dataset_correlation <- renderPlot({
+        req(dataset())
+        # Compute variables correlation
+        pairs(
+          dataset(),
+          upper.panel = function(x, y, ...) {
+            points(x = x, y = y, col = "grey")
+            abline(coef(lm(y ~ x)), col = "tomato", lwd = 2)
+          },
+          lower.panel = function(x, y, ...) {
+            par(usr = c(0, 1, 0, 1))
+            text(x = 0.5, y = 0.5, round(cor(x, y), 2), cex = 2)
+          }
+        )
+      })
+
+      # Plot dataset heatmap
+      output$dataset_heatmap <- renderPlot({
+        req(dataset())
+        # Compute variables heatmap
+        rho <- cor(dataset())
+        palette_breaks <- seq(0, 1, 0.1)
+        par(oma = c(2, 2, 2, 1))
+        heatmap.2(rho, scale = "none", trace = "none", revC = TRUE, breaks = palette_breaks)
       })
 
       # Return the dataset
