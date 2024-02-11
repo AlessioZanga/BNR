@@ -83,6 +83,14 @@
       "Hash": "1cd39406d7fde7d059c12e2940ca65cc",
       "Requirements": []
     },
+    "KernSmooth": {
+      "Package": "KernSmooth",
+      "Version": "2.23-22",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "2fecebc3047322fa5930f74fae5de70f",
+      "Requirements": []
+    },
     "Matrix": {
       "Package": "Matrix",
       "Version": "1.6-5",
@@ -205,6 +213,14 @@
         "bit"
       ]
     },
+    "bitops": {
+      "Package": "bitops",
+      "Version": "1.0-7",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "b7d8d8ee39869c18d8846a184dd8a1af",
+      "Requirements": []
+    },
     "bnlearn": {
       "Package": "bnlearn",
       "Version": "4.8.1",
@@ -258,6 +274,16 @@
         "mime",
         "rlang",
         "sass"
+      ]
+    },
+    "caTools": {
+      "Package": "caTools",
+      "Version": "1.18.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "34d90fa5845004236b9eacafc51d07b2",
+      "Requirements": [
+        "bitops"
       ]
     },
     "cachem": {
@@ -504,6 +530,18 @@
       "Hash": "eef7063b82c79405f4eb2de9a051a312",
       "Requirements": []
     },
+    "gplots": {
+      "Package": "gplots",
+      "Version": "3.1.3.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "f72b5d1ed587f8905e38ee7295e88d80",
+      "Requirements": [
+        "KernSmooth",
+        "caTools",
+        "gtools"
+      ]
+    },
     "graph": {
       "Package": "graph",
       "Version": "1.78.0",
@@ -516,6 +554,14 @@
       "Requirements": [
         "BiocGenerics"
       ]
+    },
+    "gtools": {
+      "Package": "gtools",
+      "Version": "3.9.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "588d091c35389f1f4a9d533c8d709b35",
+      "Requirements": []
     },
     "highr": {
       "Package": "highr",

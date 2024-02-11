@@ -1,6 +1,6 @@
 # Data import module
-source("modules/data_import/ui.R")
-source("modules/data_import/server.R")
+source("modules/dataset_import/ui.R")
+source("modules/dataset_import/server.R")
 
 # Graph design module
 source("modules/graph_design/ui.R")

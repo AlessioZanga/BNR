@@ -5,8 +5,8 @@ library(shinyjs)
 library(shinydashboard)
 library(shinyhelper)
 
-# Define data_import UI function
-dataImportUI <- function(id = "data_import") {
+# Define dataset_import UI function
+datasetImportUI <- function(id = "dataset_import") {
   # Load module namespace
   ns <- NS(id)
 
@@ -22,24 +22,24 @@ dataImportUI <- function(id = "data_import") {
   tagList(
     fluidRow(
       box(
-        title = "Data Import",
+        title = "Dataset Import",
         status = "primary",
         solidHeader = TRUE,
         width = 3,
         selectInput(ns("format"), "Choose a file format:", formats) %>%
           helper(
             type = "markdown",
-            content = "data_import-format"
+            content = "dataset_import-format"
           ),
         checkboxInput(ns("header"), "First row contains header.", TRUE) %>%
           helper(
             type = "markdown",
-            content = "data_import-header"
+            content = "dataset_import-header"
           ),
         checkboxInput(ns("index"), "First column contains index.", FALSE) %>%
           helper(
             type = "markdown",
-            content = "data_import-index"
+            content = "dataset_import-index"
           ),
         fileInput(
           ns("file"),
@@ -49,7 +49,7 @@ dataImportUI <- function(id = "data_import") {
         ) %>%
           helper(
             type = "markdown",
-            content = "data_import-file"
+            content = "dataset_import-file"
           )
       ),
       box(
@@ -57,7 +57,7 @@ dataImportUI <- function(id = "data_import") {
         status = "primary",
         solidHeader = TRUE,
         width = 9,
-        dataTableOutput(ns("preview"))
+        dataTableOutput(ns("dataset_preview"))
       )
     ),
     fluidRow(
@@ -66,7 +66,38 @@ dataImportUI <- function(id = "data_import") {
         status = "primary",
         solidHeader = TRUE,
         width = 12,
-        dataTableOutput(ns("summary"))
+        dataTableOutput(ns("dataset_summary"))
+      )
+    ),
+    fluidRow(
+      box(
+        title = "Dataset Histogram Plot",
+        status = "primary",
+        solidHeader = TRUE,
+        width = 12,
+        plotOutput(ns("dataset_histogram"))
+      )
+    ),
+    fluidRow(
+      column(
+        6,
+        box(
+          title = "Dataset Correlation Plot",
+          status = "primary",
+          solidHeader = TRUE,
+          width = 12,
+          plotOutput(ns("dataset_correlation"), height = "750px")
+        )
+      ),
+      column(
+        6,
+        box(
+          title = "Dataset Correlation Heatmap",
+          status = "primary",
+          solidHeader = TRUE,
+          width = 12,
+          plotOutput(ns("dataset_heatmap"), height = "750px")
+        )
       )
     ),
   )
