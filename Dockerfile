@@ -1,5 +1,5 @@
 # Select R version
-FROM r-base:4.2.0
+FROM r-base:4.3.2
 
 # Setup environment
 ENV R_SHINY_PORT=8080
