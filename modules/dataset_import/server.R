@@ -8,8 +8,8 @@ library(dplyr)
 library(readxl)
 library(readODS)
 
-# Define data_import server function
-dataImportServer <- function(id = "data_import") {
+# Define dataset_import server function
+datasetImportServer <- function(id = "dataset_import") {
   moduleServer(
     id,
     function(input, output, session) {
