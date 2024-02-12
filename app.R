@@ -1,5 +1,5 @@
-# Load global settings
-source("global.R")
+# Load global configuration
+source("config.R")
 
 # Load required packages
 library(shiny)
