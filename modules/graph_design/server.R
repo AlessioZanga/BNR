@@ -4,6 +4,7 @@ library(shinyjs)
 library(shinydashboard)
 library(shinyFeedback)
 library(igraph)
+library(bnlearn)
 library(visNetwork)
 
 # Define graph_design server function
@@ -37,6 +38,40 @@ graphDesignServer <- function(id = "graph_design", dataset) {
           graph(g)
         }
       )
+
+      # Learn structure from dataset
+      observeEvent(input$structure_learning_run, {
+        # Unset validation
+        hideFeedback("definition")
+        hideFeedback("structure_learning_algorithm")
+        hideFeedback("structure_learning_score")
+        # Check for structure definition
+        req(input$definition == "structure_learning")
+        # Check for non-empty dataset
+        req(dataset())
+        # Set validation
+        showFeedbackSuccess("definition")
+        showFeedbackSuccess("structure_learning_algorithm")
+        showFeedbackSuccess("structure_learning_score")
+        # Initialize progress bar
+        withProgress(message = "Learning model", {
+          # Set initial progress
+          incProgress(0.10)
+          # Select structure learning algorithm
+          algorithm <- getFromNamespace(input$structure_learning_algorithm, "bnlearn")
+          # Run structure learning algorithm
+          g <- algorithm(dataset(), score = input$structure_learning_score)
+          # Set final progress
+          incProgress(0.90)
+
+          # Convert to igraph
+          label <- bnlearn::nodes(g)
+          g <- as.igraph(g)
+          V(g)$label <- label
+          
+          graph(g)
+        })
+      })
 
       # Load graph from file
       observeEvent(

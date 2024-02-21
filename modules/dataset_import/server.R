@@ -80,6 +80,7 @@ datasetImportServer <- function(id = "dataset_import") {
 
       # Get dataset summary
       output$dataset_summary <- renderDataTable({
+        # Check for non-null dataset
         req(dataset())
         # Compute summary statistics and convert to data.frame
         do.call(
@@ -92,6 +93,7 @@ datasetImportServer <- function(id = "dataset_import") {
 
       # Plot dataset histogram
       output$dataset_histogram <- renderPlot({
+        # Check for non-null dataset
         req(dataset())
         # Compute variables histogram
         par(mfrow = c(round(ncol(dataset()) / 8), 8))
@@ -105,6 +107,7 @@ datasetImportServer <- function(id = "dataset_import") {
 
       # Plot dataset correlation
       output$dataset_correlation <- renderPlot({
+        # Check for non-null dataset
         req(dataset())
         # Compute variables correlation
         pairs(
@@ -122,6 +125,7 @@ datasetImportServer <- function(id = "dataset_import") {
 
       # Plot dataset heatmap
       output$dataset_heatmap <- renderPlot({
+        # Check for non-null dataset
         req(dataset())
         # Compute variables heatmap
         rho <- cor(dataset())

@@ -84,11 +84,11 @@ parameterLearningServer <-
                 next
               }
               # Else if node has at least one parent, set the parents...
-              predictors <- as.matrix(data[, parents(dag, node), drop <- FALSE])
+              predictors <- as.matrix(data[, bnlearn::parents(dag, node), drop <- FALSE])
               # ... and add the intercept as first value
               predictors <- cbind(rep(1, nrow(predictors)), predictors)
               # Initialize variable given associated node
-              coefs <- Variable(length(parents(dag, node)) + 1)
+              coefs <- Variable(length(bnlearn::parents(dag, node)) + 1)
               # Minimize the objective function...
               objective <- Minimize(
                 sum_squares(

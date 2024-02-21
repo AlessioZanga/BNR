@@ -33,6 +33,7 @@ graphDesignUI <- function(id = "graph_design") {
             "Choose a graph builder:",
             list(
               "Interactive builder" = "interactive",
+              "Structure learning" = "structure_learning",
               "Import from file" = "file"
             )
           ) %>%
@@ -40,6 +41,34 @@ graphDesignUI <- function(id = "graph_design") {
               type = "markdown",
               content = "graph_design-definition"
             ),
+          conditionalPanel(
+            condition = "input.definition == 'structure_learning'",
+            ns = ns,
+            selectInput(
+              ns("structure_learning_algorithm"),
+              "Choose a learning algorithm:",
+              list(
+                "Hill Climbing" = "hc",
+                "Tabu Search" = "tabu"
+              )
+            ),
+            selectInput(
+              ns("structure_learning_score"),
+              "Choose a learning score:",
+              list(
+                "Log-Likelihood" = "loglik-g", # Gaussian
+                "Akaike Information Criterion" = "aic-g", # Gaussian
+                "Bayesian Information Criterion" = "bic-g", # Gaussian
+                "Extended BIC" = "ebic-g" # Gaussian
+              ),
+              selected = "bic-g"
+            ),
+            actionButton(
+              ns("structure_learning_run"),
+              "Learn Model",
+              icon = icon("cogs")
+            )
+          ),
           conditionalPanel(
             condition = "input.definition == 'file'",
             ns = ns,
