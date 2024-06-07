@@ -76,10 +76,10 @@ datasetImportServer <- function(id = "dataset_import") {
       })
 
       # Get dataset head as preview
-      output$dataset_preview <- renderDataTable(dataset())
+      output$dataset_preview <- DT::renderDT(dataset())
 
       # Get dataset summary
-      output$dataset_summary <- renderDataTable({
+      output$dataset_summary <- DT::renderDT({
         # Check for non-null dataset
         req(dataset())
         # Compute summary statistics and convert to data.frame

@@ -8,6 +8,8 @@ library(shinydashboard)
 library(shinyFeedback)
 library(shinyhelper)
 library(markdown)
+# Add development packages
+library(languageserver)
 
 # Define dashboard header
 header <- dashboardHeader(title = "BNR")

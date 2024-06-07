@@ -57,7 +57,7 @@ datasetImportUI <- function(id = "dataset_import") {
         status = "primary",
         solidHeader = TRUE,
         width = 9,
-        dataTableOutput(ns("dataset_preview"))
+        DT::DTOutput(ns("dataset_preview"))
       )
     ),
     fluidRow(
@@ -66,7 +66,7 @@ datasetImportUI <- function(id = "dataset_import") {
         status = "primary",
         solidHeader = TRUE,
         width = 12,
-        dataTableOutput(ns("dataset_summary"))
+        DT::DTOutput(ns("dataset_summary"))
       )
     ),
     fluidRow(
