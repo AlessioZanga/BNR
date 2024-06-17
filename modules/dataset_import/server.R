@@ -23,7 +23,6 @@ datasetImportServer <- function(id = "dataset_import") {
         tryCatch(
           {
             # Hide feedback
-            hideFeedback("dtype")
             hideFeedback("format")
             hideFeedback("file")
             # Read uploaded file
@@ -69,15 +68,49 @@ datasetImportServer <- function(id = "dataset_import") {
               df <- df %>% mutate_all(as.factor)
               attributes(df)$is_continuous <- FALSE
             }
+            # Set time lag flag.
+            attributes(df)$has_time_lag <- FALSE
+            if (input$lag) {
+              # Save data type.
+              is_continuous <- attributes(df)$is_continuous
+              # Add time lag to dataset
+              df <- cbind(
+                {
+                  # Remove last row.
+                  d <- df[-nrow(df), ]
+                  # Renane columns applying lag.
+                  colnames(d) <- sapply(
+                    colnames(d),
+                    function(x) paste0(x, "_0")
+                  )
+
+                  d
+                },
+                {
+                  # Remove first row.
+                  d <- df[-1, ]
+                  # Reset row names.
+                  row.names(d) <- NULL
+                  # Renane columns applying lag.
+                  colnames(d) <- sapply(
+                    colnames(d),
+                    function(x) paste0(x, "_1")
+                  )
+
+                  d
+                }
+              )
+              # Set data type
+              attributes(df)$is_continuous <- is_continuous
+              attributes(df)$has_time_lag <- TRUE
+            }
             # Show feedback
-            showFeedbackSuccess("dtype")
             showFeedbackSuccess("format")
             showFeedbackSuccess("file")
             # Return dataset
             return(df)
           },
           error = function(e) {
-            showFeedbackDanger("dtype")
             showFeedbackDanger("format")
             showFeedbackDanger("file")
             showModal(
