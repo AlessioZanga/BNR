@@ -5,6 +5,7 @@ library(shinydashboard)
 library(shinyFeedback)
 library(igraph)
 library(bnlearn)
+library(parallel)
 library(visNetwork)
 
 # Define graph_design server function
@@ -53,8 +54,8 @@ graphDesignServer <- function(id = "graph_design", dataset) {
             lag_1 <- cols[sapply(cols, function(x) endsWith(x, "_1"))]
 
             forbidden_edges_lag <- rbind(
-              expand.grid(lag_0, lag_0),  # Forbid istantaneous feedback.
-              expand.grid(lag_1, lag_0)   # Forbid feedback from the future.
+              expand.grid(lag_0, lag_0), # Forbid istantaneous feedback.
+              expand.grid(lag_1, lag_0) # Forbid feedback from the future.
             )
             colnames(forbidden_edges_lag) <- c("from", "to")
 
@@ -204,44 +205,67 @@ graphDesignServer <- function(id = "graph_design", dataset) {
           # Set initial progress
           incProgress(0.10)
           # Select structure learning algorithm
-          algorithm <- getFromNamespace(
-            input$structure_learning_algorithm,
-            "bnlearn"
-          )
+          algorithm <- input$structure_learning_algorithm
           # Get score function
           s <- input$structure_learning_score
           if (attributes(dataset())$is_continuous) {
             s <- paste0(s, "-g")
           }
-          # Run structure learning algorithm
-          g <- algorithm(
-            dataset(),
-            score = s,
-            # Add whitelist and blacklist if not empty
-            whitelist = {
-              if (nrow(required_edges()) > 0) {
-                required_edges()
-              } else {
-                NULL
-              }
-            },
-            blacklist = {
-              if (nrow(forbidden_edges()) > 0) {
-                forbidden_edges()
-              } else {
-                NULL
-              }
-            }
-          )
+          # Add required and forbidden edges if not empty
+          required <- NULL
+          if (nrow(required_edges()) > 0) {
+            required <- required_edges()
+          }
+          forbidden <- NULL
+          if (nrow(forbidden_edges()) > 0) {
+            forbidden <- forbidden_edges()
+          }
+          # Check if strength is to be estimated
+          if (input$structure_learning_strength) {
+            # Initialize cluster
+            cluster <- detectCores()
+            cluster <- makeCluster(cluster)
+            # Estimate strength of edges
+            strength <- boot.strength(
+              data = dataset(),
+              cluster = cluster,
+              R = 100,
+              algorithm = algorithm,
+              algorithm.args = list(
+                score = s,
+                whitelist = required,
+                blacklist = forbidden
+              ),
+            )
+            # Close cluster
+            stopCluster(cluster)
+            # Get DAG from strength
+            g <- cextend(averaged.network(strength, 0.50))
+          } else {
+            # Run structure learning algorithm
+            g <- getFromNamespace(algorithm, "bnlearn")(
+              dataset(),
+              score = s,
+              whitelist = required,
+              blacklist = forbidden
+            )
+          }
           # Set final progress
           incProgress(0.90)
 
           # Convert to igraph
           label <- bnlearn::nodes(g)
-          g <- as.igraph(g)
-          V(g)$label <- label
+          g_ <- as.igraph(g)
+          V(g_)$label <- label
 
-          graph(g)
+          graph(g_)
+
+          # Plot edges strength if available
+          if (input$structure_learning_strength) {
+            output$strength <- renderPlot({
+              strength.plot(g, strength)
+            })
+          }
         })
       })
 

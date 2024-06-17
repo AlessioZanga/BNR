@@ -63,6 +63,11 @@ graphDesignUI <- function(id = "graph_design") {
               ),
               selected = "loglik"
             ),
+            checkboxInput(
+              ns("structure_learning_strength"),
+              "Estimate strength of edges.",
+              value = TRUE
+            ),
             actionButton(
               ns("structure_learning_run"),
               "Learn Model",
@@ -130,6 +135,17 @@ graphDesignUI <- function(id = "graph_design") {
               ",
               ns("keyup")
             )
+          )
+        ),
+        conditionalPanel(
+          condition = "input.definition == 'structure_learning' & input.structure_learning_strength",
+          ns = ns,
+          box(
+            title = "Graph Strength Plot",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            plotOutput(ns("strength"))
           )
         ),
         box(

@@ -45,7 +45,7 @@ queryEstimationUI <- function(id = "query_estimation") {
               content = "query_estimation-query_type"
             ),
           conditionalPanel(
-            condition = 'input.query_type == "cpd"', ns = ns,
+            condition = "input.query_type == 'cpd'", ns = ns,
             textInput(ns("query_variables"), "Target variables:") %>%
               helper(
                 type = "markdown",
