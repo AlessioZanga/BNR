@@ -48,98 +48,105 @@ parameterLearningServer <-
 
         # Fit parameters
         observeEvent(input$fit_parameters, {
-          # Get data from dataset
-          data <- dataset()
+          # Get d from dataset
+          d <- dataset()
           # Get DAG from empty model
-          dag <- model()
-          # Check if dag is bn.net
-          if (class(dag)[[1]] != "bn") {
-            dag <- bn.net(dag)
+          g <- model()
+          # Check if g is bn.net
+          if (class(g)[[1]] != "bn") {
+            g <- bn.net(g)
           }
           # Initialize parameters given nodes
-          parameters <- vector(nnodes(dag), mode = "list")
-          names(parameters) <- nodes(dag)
+          parameters <- vector(nnodes(g), mode = "list")
+          names(parameters) <- nodes(g)
           # Initialize progress bar
           withProgress(message = "Fitting model", {
-            # For each node in DAG
-            for (node in nodes(dag)) {
-              # Update progress bar
-              incProgress(
-                1 / nnodes(dag),
-                detail = paste0("Processing '", node, "'")
-              )
-              # Get response given node
-              response <- data[, node]
-              # If node has no parents
-              if (node %in% root.nodes(dag)) {
-                # Then set parameters to normal distribution
+            # If the dataset is continuous, then fit the parameters
+            if (attributes(d)$is_continuous) {
+              # For each node in DAG
+              for (node in nodes(g)) {
+                # Update progress bar
+                incProgress(
+                  1 / nnodes(g),
+                  detail = paste0("Processing '", node, "'")
+                )
+                # Get response given node
+                response <- d[, node]
+                # If node has no parents
+                if (node %in% root.nodes(g)) {
+                  # Then set parameters to normal distribution
+                  parameters[[node]] <-
+                    list(
+                      coef = mean(response),
+                      sd = sd(response),
+                      fitted = rep(mean(response), nrow(d)),
+                      resid = response - mean(response)
+                    )
+                  # Continue to next node
+                  next
+                }
+                # Else if node has at least one parent, set the parents...
+                predictors <- as.matrix(
+                  d[, bnlearn::parents(g, node), drop <- FALSE]
+                )
+                # ... and add the intercept as first value
+                predictors <- cbind(rep(1, nrow(predictors)), predictors)
+                # Initialize variable given associated node
+                coefs <- Variable(length(bnlearn::parents(g, node)) + 1)
+                # Minimize the objective function...
+                objective <- Minimize(
+                  sum_squares(
+                    response - predictors %*% coefs
+                  )
+                )
+                # ... subject to given constraints
+                cs <- list()
+                if (input$constraints_flag) {
+                  # Set RESPONSE scope for eval resolution
+                  assign("RESPONSE", predictors %*% coefs, envir = environment())
+                  # Get the constraints
+                  cs <- constraints()
+                  # Filter only local constraints
+                  cs <- Filter(function(x) grepl(node, x), cs)
+                  # Replace local variable with RESPONSE placeholder
+                  cs <- lapply(cs, function(x) gsub(node, "RESPONSE", x))
+                  # Replace non-local variables with data
+                  cs <- lapply(cs, function(x) {
+                    for (var in nodes(model())) {
+                      x <- gsub(var, paste0("d[ , \"", var, "\"]"), x)
+                    }
+                    x
+                  })
+                  # Parse the constraints
+                  cs <- lapply(cs, str2lang)
+                  # Evaluate the constraints
+                  cs <- lapply(cs, function(x) eval(x, envir = environment()))
+                }
+                # Define the constrained optimization problem...
+                problem <- Problem(objective, constraints = cs)
+                # ... and solve it
+                result <- solve(problem)
+                # Get the resulting coefficients
+                coefficients <- result$getValue(coefs)
+                fitted.values <- as.numeric(predictors %*% coefficients)
+                residuals <- as.numeric(response - fitted.values)
+                # Update parameters given coefficients
                 parameters[[node]] <-
                   list(
-                    coef = mean(response),
-                    sd = sd(response),
-                    fitted = rep(mean(response), nrow(data)),
-                    resid = response - mean(response)
+                    coef = as.numeric(coefficients),
+                    sd = sd(residuals) * sqrt(
+                      (nrow(d) - 1) / (nrow(d) - ncol(predictors))
+                    ),
+                    fitted = fitted.values,
+                    resid = residuals
                   )
-                # Continue to next node
-                next
               }
-              # Else if node has at least one parent, set the parents...
-              predictors <- as.matrix(data[, parents(dag, node), drop <- FALSE])
-              # ... and add the intercept as first value
-              predictors <- cbind(rep(1, nrow(predictors)), predictors)
-              # Initialize variable given associated node
-              coefs <- Variable(length(parents(dag, node)) + 1)
-              # Minimize the objective function...
-              objective <- Minimize(
-                sum_squares(
-                  response - predictors %*% coefs
-                )
-              )
-              # ... subject to given constraints
-              cs <- list()
-              if (input$constraints_flag) {
-                # Set RESPONSE scope for eval resolution
-                assign("RESPONSE", predictors %*% coefs, envir = environment())
-                # Get the constraints
-                cs <- constraints()
-                # Filter only local constraints
-                cs <- Filter(function(x) grepl(node, x), cs)
-                # Replace local variable with REPONSE placeholder
-                cs <- lapply(cs, function(x) gsub(node, "RESPONSE", x))
-                # Replace non-local variables with data.
-                cs <- lapply(cs, function(x) {
-                    for (var in nodes(model())) {
-                        x <- gsub(var, paste0("data[ , \"", var,"\"]"), x)
-                    }
-                    
-                    x
-                })
-                # Parse the constraints
-                cs <- lapply(cs, str2lang)
-                # Evaluate the constraints
-                cs <- lapply(cs, function(x) eval(x, envir = environment()))
-              }
-              # Define the constrained optimization problem...
-              problem <- Problem(objective, constraints = cs)
-              # ... and solve it
-              result <- solve(problem)
-              # Get the resulting coefficients
-              coefficients <- result$getValue(coefs)
-              fitted.values <- as.numeric(predictors %*% coefficients)
-              residuals <- as.numeric(response - fitted.values)
-              # Update parameters given coefficients
-              parameters[[node]] <-
-                list(
-                  coef = as.numeric(coefficients),
-                  sd = sd(residuals) * sqrt(
-                    (nrow(data) - 1) / (nrow(data) - ncol(predictors))
-                  ),
-                  fitted = fitted.values,
-                  resid = residuals
-                )
+              # Build the Bayesian Network from the DAG and parameters
+              model(custom.fit(g, parameters))
+            } else {
+              # If the dataset is discrete, then fit the parameters
+              model(bn.fit(g, d, method = "bayes"))
             }
-            # Build the Bayesian Network from the DAG and parameters
-            model(custom.fit(dag, parameters))
           })
         })
 

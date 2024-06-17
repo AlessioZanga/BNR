@@ -15,7 +15,7 @@ Build the Docker container using:
 
 Run the application by binding to a port:
 
-    docker run -p 8080:8080 maxplank/bnr
+    docker run -p 8080:3838 maxplank/bnr
 
 Open the browser at [http://localhost:8080/](http://localhost:8080/).
 

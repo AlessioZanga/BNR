@@ -1,27 +1,15 @@
 # Select R version
-FROM r-base:4.2.0
+FROM r-base:4.4.0
 
 # Setup environment
-ENV R_SHINY_PORT=8080
+ENV R_SHINY_PORT=3838
+
+# Set working directory and copy resources.
 WORKDIR /workspace
+COPY . /workspace
 
-# Install system dependencies
-RUN apt-get update && \
-    apt-get install -y \
-    libcurl4-openssl-dev \
-    libgmp-dev \
-    libmpfr-dev \
-    libssl-dev \
-    libxml2-dev
-
-# Install R dependencies
-COPY .Rprofile .
-COPY renv.lock .
-COPY renv/activate.R ./renv/activate.R
-RUN R -e 'renv::restore()'
-
-# Copy R sourcers
-COPY . .
+# Compile R dependencies.
+RUN R -e "renv::restore(prompt = FALSE)"
 
 # Set entrypoint
 ENTRYPOINT ["Rscript", "app.R"]

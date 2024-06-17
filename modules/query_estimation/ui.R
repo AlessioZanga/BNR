@@ -72,7 +72,7 @@ queryEstimationUI <- function(id = "query_estimation") {
           autonumericInput(
             ns("query_samples"),
             "Number of samples:",
-            value = 10^7,
+            value = 10^5,
             align = "left",
             digitGroupSeparator = ",",
             allowDecimalPadding = FALSE,
@@ -86,7 +86,7 @@ queryEstimationUI <- function(id = "query_estimation") {
           autonumericInput(
             ns("query_batch"),
             "Batch size:",
-            value = 10^5,
+            value = 10^3,
             align = "left",
             digitGroupSeparator = ",",
             allowDecimalPadding = FALSE,

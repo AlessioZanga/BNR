@@ -1,5 +1,5 @@
-# Load global settings
-source("global.R")
+# Load global configuration
+source("config.R")
 
 # Load required packages
 library(shiny)
@@ -8,6 +8,8 @@ library(shinydashboard)
 library(shinyFeedback)
 library(shinyhelper)
 library(markdown)
+# Add development packages
+library(languageserver)
 
 # Define dashboard header
 header <- dashboardHeader(title = "BNR")
@@ -20,8 +22,8 @@ sidebar <- dashboardSidebar(sidebarMenu(
     icon = icon("home")
   ),
   menuItem(
-    "Data Import",
-    tabName = "data_import",
+    "Dataset Import",
+    tabName = "dataset_import",
     icon = icon("database")
   ),
   menuItem(
@@ -59,7 +61,7 @@ body <- dashboardBody(
   useShinyFeedback(),
   tabItems(
     tabItem(tabName = "home", home),
-    tabItem(tabName = "data_import", dataImportUI()),
+    tabItem(tabName = "dataset_import", datasetImportUI()),
     tabItem(tabName = "graph_builder", graphDesignUI()),
     tabItem(tabName = "parameter_learning", parameterLearningUI()),
     tabItem(tabName = "query_estimation", queryEstimationUI())
@@ -79,7 +81,7 @@ server <- function(input, output, session) {
   # Define observer for helpers.
   observe_helpers(session, help_dir = "help")
 
-  dataset <- dataImportServer()
+  dataset <- datasetImportServer()
   graph <- graphDesignServer(dataset = dataset)
   model <- parameterLearningServer(dataset = dataset, graph = graph)
   queryEstimationServer(model = model)
