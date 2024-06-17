@@ -29,7 +29,7 @@ graphDesignServer <- function(id = "graph_design", dataset) {
           len <- length(nodes)
           # Check for non-empty dataset
           hideFeedback("definition")
-          req(input$definition == "interactive" && len > 0)
+          req(input$definition != "file" && len > 0)
           showFeedbackSuccess("definition")
           # Build new null graph with labels
           g <- make_empty_graph(n = len)
@@ -38,6 +38,130 @@ graphDesignServer <- function(id = "graph_design", dataset) {
           graph(g)
         }
       )
+
+      # Initialize the forbidden and required dataframes.
+      forbidden_edges <- reactiveVal(
+        data.frame(from = character(), to = character())
+      )
+      required_edges <- reactiveVal(
+        data.frame(from = character(), to = character())
+      )
+      # Render the forbidden and required edges.
+      output$forbidden_edges <- DT::renderDT(forbidden_edges())
+      output$required_edges <- DT::renderDT(required_edges())
+      # Add forbidden edge
+      observeEvent(input$forbidden_edges_add, {
+        # Get the vertices
+        from <- input$forbidden_edges_from
+        to <- input$forbidden_edges_to
+        # Check that the vertices are in the graph
+        hideFeedback("forbidden_edges_from")
+        if (from %in% V(graph())$label) {
+          showFeedbackSuccess("forbidden_edges_from")
+        } else {
+          showFeedbackDanger("forbidden_edges_from")
+        }
+        hideFeedback("forbidden_edges_to")
+        if (to %in% V(graph())$label) {
+          showFeedbackSuccess("forbidden_edges_to")
+        } else {
+          showFeedbackDanger("forbidden_edges_to")
+        }
+        # Add the edge
+        forbidden_edges(
+          unique(
+            rbind(
+              forbidden_edges(),
+              data.frame(from, to)
+            )
+          )
+        )
+      })
+      # Remove forbidden edge
+      observeEvent(input$forbidden_edges_remove, {
+        # Get the vertices
+        from <- input$forbidden_edges_from
+        to <- input$forbidden_edges_to
+        # Check that the vertices are in the graph
+        hideFeedback("forbidden_edges_from")
+        if (from %in% V(graph())$label) {
+          showFeedbackSuccess("forbidden_edges_from")
+        } else {
+          showFeedbackDanger("forbidden_edges_from")
+        }
+        hideFeedback("forbidden_edges_to")
+        if (to %in% V(graph())$label) {
+          showFeedbackSuccess("forbidden_edges_to")
+        } else {
+          showFeedbackDanger("forbidden_edges_to")
+        }
+        # Remove the edge
+        forbidden_edges(
+          forbidden_edges() %>%
+            filter(from != from & to != to)
+        )
+      })
+      # Clear forbidden edges
+      observeEvent(input$forbidden_edges_clear, {
+        forbidden_edges(data.frame(from = character(), to = character()))
+      })
+
+      # Add required edge
+      observeEvent(input$required_edges_add, {
+        # Get the vertices
+        from <- input$required_edges_from
+        to <- input$required_edges_to
+        # Check that the vertices are in the graph
+        hideFeedback("required_edges_from")
+        if (from %in% V(graph())$label) {
+          showFeedbackSuccess("required_edges_from")
+        } else {
+          showFeedbackDanger("required_edges_from")
+        }
+        hideFeedback("required_edges_to")
+        if (to %in% V(graph())$label) {
+          showFeedbackSuccess("required_edges_to")
+        } else {
+          showFeedbackDanger("required_edges_to")
+        }
+        # Add the edge
+        required_edges(
+          unique(
+            rbind(
+              required_edges(),
+              data.frame(from, to)
+            )
+          )
+        )
+      })
+      # Remove required edge
+      observeEvent(input$required_edges_remove, {
+        # Get the vertices
+        from <- input$required_edges_from
+        to <- input$required_edges_to
+        # Check that the vertices are in the graph
+        hideFeedback("required_edges_from")
+        if (from %in% V(graph())$label) {
+          showFeedbackSuccess("required_edges_from")
+        } else {
+          showFeedbackDanger("required_edges_from")
+        }
+        hideFeedback("required_edges_to")
+        if (to %in% V(graph())$label) {
+          showFeedbackSuccess("required_edges_to")
+        } else {
+          showFeedbackDanger("required_edges_to")
+        }
+        # Remove the edge
+        required_edges(
+          required_edges() %>%
+            filter(from != from & to != to)
+        )
+      })
+      # Clear required edges
+      observeEvent(input$required_edges_clear, {
+        required_edges(data.frame(from = character(), to = character()))
+      })
 
       # Learn structure from dataset
       observeEvent(input$structure_learning_run, {
@@ -68,7 +192,25 @@ graphDesignServer <- function(id = "graph_design", dataset) {
             s <- paste0(s, "-g")
           }
           # Run structure learning algorithm
-          g <- algorithm(dataset(), score = s)
+          g <- algorithm(
+            dataset(),
+            score = s,
+            # Add whitelist and blacklist if not empty
+            whitelist = {
+              if (nrow(required_edges()) > 0) {
+                required_edges()
+              } else {
+                NULL
+              }
+            },
+            blacklist = {
+              if (nrow(forbidden_edges()) > 0) {
+                forbidden_edges()
+              } else {
+                NULL
+              }
+            }
+          )
           # Set final progress
           incProgress(0.90)
 
@@ -76,7 +218,7 @@ graphDesignServer <- function(id = "graph_design", dataset) {
           label <- bnlearn::nodes(g)
           g <- as.igraph(g)
           V(g)$label <- label
-          
+
           graph(g)
         })
       })

@@ -109,24 +109,75 @@ graphDesignUI <- function(id = "graph_design") {
           downloadButton(ns("download_graph"))
         )
       ),
-      box(
-        title = "Graph Interactive Preview",
-        status = "primary",
-        solidHeader = TRUE,
-        width = 6,
-        visNetworkOutput(ns("preview")) %>%
-          helper(
-            type = "markdown",
-            content = "graph_design-preview"
+      column(
+        6,
+        box(
+          title = "Graph Interactive Preview",
+          status = "primary",
+          solidHeader = TRUE,
+          width = 12,
+          visNetworkOutput(ns("preview")) %>%
+            helper(
+              type = "markdown",
+              content = "graph_design-preview"
+            ),
+          tags$script(
+            sprintf(
+              "
+                $(document).on('keyup', function (e) {
+                  Shiny.setInputValue('%s', [e.which, e.timeStamp]);
+                });
+              ",
+              ns("keyup")
+            )
+          )
+        ),
+        box(
+          title = "Forbidden Edges",
+          status = "primary",
+          solidHeader = TRUE,
+          width = 6,
+          DT::DTOutput(ns("forbidden_edges")),
+          textInput(ns("forbidden_edges_from"), "From:"),
+          textInput(ns("forbidden_edges_to"), "To:"),
+          actionButton(
+            ns("forbidden_edges_add"),
+            "Add",
+            icon = icon("plus")
           ),
-        tags$script(
-          sprintf(
-            "
-            $(document).on('keyup', function (e) {
-              Shiny.setInputValue('%s', [e.which, e.timeStamp]);
-            });
-          ",
-            ns("keyup")
+          actionButton(
+            ns("forbidden_edges_remove"),
+            "Remove",
+            icon = icon("minus")
+          ),
+          actionButton(
+            ns("forbidden_edges_clear"),
+            "Clear",
+            icon = icon("trash")
+          ),
+        ),
+        box(
+          title = "Required Edges",
+          status = "primary",
+          solidHeader = TRUE,
+          width = 6,
+          DT::DTOutput(ns("required_edges")),
+          textInput(ns("required_edges_from"), "From:"),
+          textInput(ns("required_edges_to"), "To:"),
+          actionButton(
+            ns("required_edges_add"),
+            "Add",
+            icon = icon("plus")
+          ),
+          actionButton(
+            ns("required_edges_remove"),
+            "Remove",
+            icon = icon("minus")
+          ),
+          actionButton(
+            ns("required_edges_clear"),
+            "Clear",
+            icon = icon("trash")
           )
         )
       ),

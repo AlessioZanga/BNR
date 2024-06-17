@@ -52,12 +52,12 @@ parameterLearningUI <- function(id = "parameter_learning") {
             ),
           actionButton(
             ns("constraints_add"),
-            "Add constraint",
+            "Add",
             icon = icon("plus")
           ),
           actionButton(
             ns("constraints_clear"),
-            "Clear constraints",
+            "Clear",
             icon = icon("trash")
           )
         ),
