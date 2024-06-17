@@ -16,6 +16,13 @@ graphDesignServer <- function(id = "graph_design", dataset) {
 
       # Initialize graph to the null graph
       graph <- reactiveVal(make_empty_graph())
+      # Initialize the forbidden and required dataframes.
+      forbidden_edges <- reactiveVal(
+        data.frame(from = character(), to = character())
+      )
+      required_edges <- reactiveVal(
+        data.frame(from = character(), to = character())
+      )
 
       # Build empty graph from variables in dataset
       observeEvent(
@@ -36,16 +43,31 @@ graphDesignServer <- function(id = "graph_design", dataset) {
           V(g)$label <- nodes
           # Update reactive val
           graph(g)
+
+          # If the dataset has time lag, then forbidden edges are added.
+          if (attributes(dataset())$has_time_lag) {
+            # Get colnames.
+            cols <- colnames(dataset())
+            # Get 0-lag and 1-lag variables.
+            lag_0 <- cols[sapply(cols, function(x) endsWith(x, "_0"))]
+            lag_1 <- cols[sapply(cols, function(x) endsWith(x, "_1"))]
+
+            forbidden_edges_lag <- rbind(
+              expand.grid(lag_0, lag_0),  # Forbid istantaneous feedback.
+              expand.grid(lag_1, lag_0)   # Forbid feedback from the future.
+            )
+            colnames(forbidden_edges_lag) <- c("from", "to")
+
+            forbidden_edges(
+              rbind(
+                forbidden_edges(),
+                forbidden_edges_lag
+              )
+            )
+          }
         }
       )
 
-      # Initialize the forbidden and required dataframes.
-      forbidden_edges <- reactiveVal(
-        data.frame(from = character(), to = character())
-      )
-      required_edges <- reactiveVal(
-        data.frame(from = character(), to = character())
-      )
       # Render the forbidden and required edges.
       output$forbidden_edges <- DT::renderDT(forbidden_edges())
       output$required_edges <- DT::renderDT(required_edges())

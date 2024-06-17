@@ -37,6 +37,11 @@ datasetImportUI <- function(id = "dataset_import") {
             type = "markdown",
             content = "dataset_import-dtype"
           ),
+        checkboxInput(ns("lag"), "Apply time-lag.", FALSE) %>%
+          helper(
+            type = "markdown",
+            content = "dataset_import-time_lag"
+          ),
         selectInput(ns("format"), "Choose a file format:", formats) %>%
           helper(
             type = "markdown",
