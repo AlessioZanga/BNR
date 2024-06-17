@@ -56,12 +56,12 @@ graphDesignUI <- function(id = "graph_design") {
               ns("structure_learning_score"),
               "Choose a learning score:",
               list(
-                "Log-Likelihood" = "loglik-g", # Gaussian
-                "Akaike Information Criterion" = "aic-g", # Gaussian
-                "Bayesian Information Criterion" = "bic-g", # Gaussian
-                "Extended BIC" = "ebic-g" # Gaussian
+                "Log-Likelihood" = "loglik",
+                "Akaike Information Criterion" = "aic",
+                "Bayesian Information Criterion" = "bic",
+                "Extended BIC" = "ebic"
               ),
-              selected = "bic-g"
+              selected = "loglik"
             ),
             actionButton(
               ns("structure_learning_run"),

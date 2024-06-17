@@ -10,6 +10,12 @@ datasetImportUI <- function(id = "dataset_import") {
   # Load module namespace
   ns <- NS(id)
 
+  # Accepted dtypes
+  dtypes <- list(
+    "Continuous" = "continuous",
+    "Discrete" = "discrete"
+  )
+
   # Accepted extensions
   formats <- list(
     "Comma Serparated Value (.csv)" = ".csv",
@@ -26,6 +32,11 @@ datasetImportUI <- function(id = "dataset_import") {
         status = "primary",
         solidHeader = TRUE,
         width = 3,
+        radioButtons(ns("dtype"), "Choose a data type:", dtypes) %>%
+          helper(
+            type = "markdown",
+            content = "dataset_import-dtype"
+          ),
         selectInput(ns("format"), "Choose a file format:", formats) %>%
           helper(
             type = "markdown",

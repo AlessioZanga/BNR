@@ -22,8 +22,11 @@ datasetImportServer <- function(id = "dataset_import") {
         # Try to parse uploaded file
         tryCatch(
           {
+            # Hide feedback
+            hideFeedback("dtype")
             hideFeedback("format")
             hideFeedback("file")
+            # Read uploaded file
             df <- switch(input$format,
               ".csv" = {
                 read.csv(file, header = input$header)
@@ -54,14 +57,27 @@ datasetImportServer <- function(id = "dataset_import") {
                 )
               }
             )
+            # Remove index column if present
             if (input$index) {
               df[1] <- NULL
             }
+            # Set data type
+            attributes(df)$is_continuous <- TRUE
+            # Check data type
+            if (input$dtype == "discrete") {
+              # Apply `as.factor` to all columns
+              df <- df %>% mutate_all(as.factor)
+              attributes(df)$is_continuous <- FALSE
+            }
+            # Show feedback
+            showFeedbackSuccess("dtype")
             showFeedbackSuccess("format")
             showFeedbackSuccess("file")
+            # Return dataset
             return(df)
           },
           error = function(e) {
+            showFeedbackDanger("dtype")
             showFeedbackDanger("format")
             showFeedbackDanger("file")
             showModal(
@@ -83,12 +99,7 @@ datasetImportServer <- function(id = "dataset_import") {
         # Check for non-null dataset
         req(dataset())
         # Compute summary statistics and convert to data.frame
-        do.call(
-          cbind,
-          lapply(dataset() %>% select(where(
-            is.numeric
-          )), summary, digits = 4)
-        )
+        do.call(cbind, lapply(dataset(), summary, digits = 4))
       })
 
       # Plot dataset histogram
@@ -97,11 +108,26 @@ datasetImportServer <- function(id = "dataset_import") {
         req(dataset())
         # Compute variables histogram
         par(mfrow = c(round(ncol(dataset()) / 8), 8))
-        for (c in names(dataset())) {
-          x <- dataset()[, c]
-          hist(x, prob = TRUE, xlab = c, ylab = "", main = "", col = "ivory")
-          lines(density(x), lwd = 2, col = "tomato")
-          curve(dnorm(x, mean = mean(x), sd = sd(x)), from = min(x), to = max(x), add = TRUE, lwd = 2, col = "steelblue")
+        # Check if dataset is continuous.
+        if (attributes(dataset())$is_continuous) {
+          for (c in names(dataset())) {
+            x <- dataset()[, c]
+            hist(x, prob = TRUE, xlab = c, ylab = "", main = "", col = "ivory")
+            lines(density(x), lwd = 2, col = "tomato")
+            curve(
+              dnorm(x, mean = mean(x), sd = sd(x)),
+              from = min(x),
+              to = max(x),
+              add = TRUE,
+              lwd = 2,
+              col = "steelblue"
+            )
+          }
+        } else {
+          for (c in names(dataset())) {
+            x <- dataset()[, c]
+            barplot(prop.table(table(x)), ylim = c(0., 1.), main = c)
+          }
         }
       })
 
@@ -128,7 +154,14 @@ datasetImportServer <- function(id = "dataset_import") {
         # Check for non-null dataset
         req(dataset())
         # Compute variables heatmap
-        rho <- cor(dataset())
+        rho <- if (attributes(dataset())$is_continuous) {
+          cor(dataset())
+        } else {
+          cor(
+            model.matrix(~ 0 + ., data = dataset()),
+            use = "pairwise.complete.obs"
+          )
+        }
         palette_breaks <- seq(0, 1, 0.1)
         par(oma = c(2, 2, 2, 1))
         heatmap.2(rho, scale = "none", trace = "none", revC = TRUE, breaks = palette_breaks)

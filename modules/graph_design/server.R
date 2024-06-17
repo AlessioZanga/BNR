@@ -58,9 +58,17 @@ graphDesignServer <- function(id = "graph_design", dataset) {
           # Set initial progress
           incProgress(0.10)
           # Select structure learning algorithm
-          algorithm <- getFromNamespace(input$structure_learning_algorithm, "bnlearn")
+          algorithm <- getFromNamespace(
+            input$structure_learning_algorithm,
+            "bnlearn"
+          )
+          # Get score function
+          s <- input$structure_learning_score
+          if (attributes(dataset())$is_continuous) {
+            s <- paste0(s, "-g")
+          }
           # Run structure learning algorithm
-          g <- algorithm(dataset(), score = input$structure_learning_score)
+          g <- algorithm(dataset(), score = s)
           # Set final progress
           incProgress(0.90)
 
