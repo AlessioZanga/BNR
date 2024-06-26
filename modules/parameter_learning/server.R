@@ -11,7 +11,7 @@ library(CVXR)
 
 # Define parameter_learning server function
 parameterLearningServer <-
-  function(id = "parameter_learning", dataset, graph) {
+  function(id = "parameter_learning", dataset, graph, models) {
     moduleServer(
       id,
       function(input, output, session) {
@@ -148,6 +148,13 @@ parameterLearningServer <-
               model(bn.fit(g, d, method = "bayes"))
             }
           })
+
+          # Save the model if comparison flag is set.
+          if (input$comparison_flag) {
+            last <- models()
+            last[[format(Sys.time(), "%Y%m%d-%H%M%S")]] <- model()
+            models(last)
+          }
         })
 
         # Plot regression coefficients
@@ -288,8 +295,8 @@ parameterLearningServer <-
           }
         )
 
-        # Return model
-        return(model)
+        # Return models
+        return(models)
       }
     )
   }

@@ -13,3 +13,7 @@ source("modules/parameter_learning/server.R")
 # Query estimation module
 source("modules/query_estimation/ui.R")
 source("modules/query_estimation/server.R")
+
+# Validation module
+source("modules/validation/ui.R")
+source("modules/validation/server.R")
