@@ -23,7 +23,14 @@ validationUI <- function(id = "validation") {
             ns("selected_model"),
             "Select a model:",
             choices = c()
-          )
+          ),
+          actionButton(
+            ns("selected_model_remove"),
+            "Remove",
+            icon = icon("trash")
+          ),
+          downloadButton(ns("selected_model_download")),
+          downloadButton(ns("models_download"), "Download All")
         ),
         box(
           title = "Model Inspection",

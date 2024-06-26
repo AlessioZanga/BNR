@@ -19,6 +19,42 @@ validationServer <- function(id = "validation", models) {
         )
       })
 
+      # Remove selected model.
+      observeEvent(input$selected_model_remove, {
+        # Require a model to be selected.
+        req(input$selected_model)
+        # Get models.
+        m <- models()
+        # Remove the selected model.
+        m[[input$selected_model]] <- NULL
+        # Update models.
+        models(m)
+      })
+
+      # Download selected model.
+      output$selected_model_download <- downloadHandler(
+        filename = paste0("model-", input$selected_model, ".rds"),
+        content = function(file) {
+          # Require a model to be selected.
+          req(input$selected_model)
+
+          saveRDS(
+            models()[[input$selected_model]],
+            file
+          )
+        }
+      )
+
+      # Download all models.
+      output$models_download <- downloadHandler(
+        filename = paste0(
+          "models-",
+          format(Sys.time(), "%Y%m%d-%H%M%S"),
+          ".rds"
+        ),
+        content = function(file) saveRDS(models(), file)
+      )
+
       # Print selected model.
       output$models_verbatim <- renderPrint({
         # Require a model to be selected.
