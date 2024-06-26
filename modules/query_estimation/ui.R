@@ -36,6 +36,11 @@ queryEstimationUI <- function(id = "query_estimation") {
           status = "primary",
           solidHeader = TRUE,
           width = 12,
+          selectInput(
+            ns("selected_model"),
+            "Select a model:",
+            choices = c()
+          ),
           selectInput(ns("query_type"), "Query type:", list(
             "Conditional Probability of an Event given Evidence" = "cp",
             "Conditional Probability Distribution given Evidence" = "cpd"

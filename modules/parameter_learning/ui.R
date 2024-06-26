@@ -78,6 +78,15 @@ parameterLearningUI <- function(id = "parameter_learning") {
                   type = "markdown",
                   content = "parameter_learning-constraints_flag"
                 ),
+              checkboxInput(
+                ns("comparison_flag"),
+                "Add to comparison list.",
+                value = TRUE
+              ) %>%
+                helper(
+                  type = "markdown",
+                  content = "parameter_learning-comparison_flag"
+                ),
               actionButton(
                 ns("fit_parameters"),
                 "Fit Model",

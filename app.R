@@ -40,6 +40,11 @@ sidebar <- dashboardSidebar(sidebarMenu(
     "Query Estimation",
     tabName = "query_estimation",
     icon = icon("cogs")
+  ),
+  menuItem(
+    "Validation",
+    tabName = "validation",
+    icon = icon("check")
   )
 ))
 
@@ -64,7 +69,8 @@ body <- dashboardBody(
     tabItem(tabName = "dataset_import", datasetImportUI()),
     tabItem(tabName = "graph_builder", graphDesignUI()),
     tabItem(tabName = "parameter_learning", parameterLearningUI()),
-    tabItem(tabName = "query_estimation", queryEstimationUI())
+    tabItem(tabName = "query_estimation", queryEstimationUI()),
+    tabItem(tabName = "validation", validationUI())
   )
 )
 
@@ -81,10 +87,15 @@ server <- function(input, output, session) {
   # Define observer for helpers.
   observe_helpers(session, help_dir = "help")
 
+  # Define the list of models
+  models <- reactiveVal(list())
+
+  # Load modules
   dataset <- datasetImportServer()
   graph <- graphDesignServer(dataset = dataset)
-  model <- parameterLearningServer(dataset = dataset, graph = graph)
-  queryEstimationServer(model = model)
+  models <- parameterLearningServer(dataset = dataset, graph = graph, models = models)
+  queryEstimationServer(models = models)
+  validationServer(models = models)
 }
 
 # Get default port

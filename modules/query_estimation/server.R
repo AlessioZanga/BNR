@@ -6,15 +6,31 @@ library(parallel)
 library(bnlearn)
 
 # Define query estimation server function
-queryEstimationServer <- function(id = "query_estimation", model) {
+queryEstimationServer <- function(id = "query_estimation", models) {
   moduleServer(
     id,
     function(input, output, session) {
       # Reactive value for simulated data.
       simulated <- reactiveVal(NULL)
 
+      # Update models keys.
+      observeEvent(models(), {
+        updateSelectInput(
+          session,
+          "selected_model",
+          choices = names(models()),
+          selected = tail(names(models()), n = 1)
+        )
+      })
+
       # Execute query
       observeEvent(input$query_execute, {
+        # Require a model to be selected.
+        req(input$selected_model)
+
+        # Retrieve the selected model.
+        selected_model <- models()[[input$selected_model]]
+
         # Validate query_event
         valid_query_event <- FALSE
         hideFeedback("query_event")
@@ -34,7 +50,7 @@ queryEstimationServer <- function(id = "query_estimation", model) {
                     <br>
                     <ul>
                         <li><b>Numeric constants</b>, i.e. integers, real numbers, etc., </li>
-                        <li><b>Known vars</b>, i.e. `", toString(names(model())), "`,</li>
+                        <li><b>Known vars</b>, i.e. `", toString(names(selected_model)), "`,</li>
                         <li><b>Known ops</b>, i.e. `", unlist(lapply(c("Arith", "Compare", "Logic", "Math"), getGroupMembers)), "`.</li>
                     </ul>
                   ")),
@@ -57,7 +73,7 @@ queryEstimationServer <- function(id = "query_estimation", model) {
             vars <- strsplit(input$query_variables, ",")
             vars <- lapply(vars, trimws)
             vars <- unlist(vars)
-            if (all((vars %in% names(model())))) {
+            if (all((vars %in% names(selected_model)))) {
               valid_variables <- TRUE
               showFeedbackSuccess("query_variables")
             } else {
@@ -97,7 +113,7 @@ queryEstimationServer <- function(id = "query_estimation", model) {
                     <br>
                     <ul>
                         <li><b>Numeric constants</b>, i.e. integers, real numbers, etc., </li>
-                        <li><b>Known vars</b>, i.e. `", toString(names(model())), "`,</li>
+                        <li><b>Known vars</b>, i.e. `", toString(names(selected_model)), "`,</li>
                         <li><b>Known ops</b>, i.e. `", unlist(lapply(c("Arith", "Compare", "Logic", "Math"), getGroupMembers)), "`.</li>
                     </ul>
                   ")),
@@ -132,7 +148,7 @@ queryEstimationServer <- function(id = "query_estimation", model) {
         }
 
         req(
-          model(),
+          selected_model,
           valid_query_event,
           (input$query_type == "cp" || valid_variables),
           valid_query_evidence,
@@ -156,7 +172,7 @@ queryEstimationServer <- function(id = "query_estimation", model) {
             # Compute conditional probability distribution
             simulated(replicate(30, eval(parse(text = paste0("
               cpquery(
-                fitted = model(),
+                fitted = selected_model,
                 event = (", input$query_event, "),
                 evidence = (", input$query_evidence, "),
                 method = input$query_method,
@@ -193,7 +209,7 @@ queryEstimationServer <- function(id = "query_estimation", model) {
             incProgress(0.10, detail = "Performing sampling procedure.")
             # Compute conditional probability distribution
             simulated(eval(parse(text = paste0("cpdist(
-              fitted = model(),
+              fitted = selected_model,
               nodes = vars,
               evidence = (", input$query_event, ") & (", input$query_evidence, "),
               method = input$query_method,

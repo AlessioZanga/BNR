@@ -66,7 +66,7 @@ graphDesignUI <- function(id = "graph_design") {
             checkboxInput(
               ns("structure_learning_strength"),
               "Estimate strength of edges.",
-              value = TRUE
+              value = FALSE
             ),
             actionButton(
               ns("structure_learning_run"),
